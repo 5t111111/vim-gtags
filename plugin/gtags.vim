@@ -3,4 +3,4 @@
 " endif
 " let g:loaded_vim_gtags = 1
 
-command! GtagsGenerate :call gtags#generate_gtags()
+command! -nargs=* -bang GtagsGenerate :call gtags#generate_gtags(<bang>0)

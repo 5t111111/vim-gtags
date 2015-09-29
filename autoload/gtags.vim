@@ -20,14 +20,9 @@ if !exists("g:vim_gtags_gtags_binary")
   let g:vim_gtags_gtags_binary = "gtags"
 endif
 
-command! -nargs=* -bang GtagsGenerate :call gtags#generate_gtags(<bang>0)
-
-function! s:save_gtags_locations()
-  let cache_file = g:vim_gtags_cache_dir . "/.vt_locations"
-  call s:load_gtags_locations()
-  call writefile(keys(s:locations), cache_file)
-  let s:dirty_locations = 0
-endfunction
+if !exists('g:vim_gtags_directories')
+  let g:vim_gtags_directories = [".git", ".hg", ".svn", ".bzr", "_darcs", "CVS"]
+endif
 
 function! s:generate_options()
   let options = ['--gtagslabel=pygments']
@@ -68,9 +63,14 @@ function! s:find_project_root()
 endfunction
 
 function! s:execute_gtags_command(path, options)
-  let command = g:vim_gtags_gtags_binary
-  let command = 'echo "Creating Gtags for ' . fnamemodify(a:path, ':r.h') . '" && ' . 'pushd ' . a:path . ' && ' . command . ' && popd'
-  silent! execute '!' . command
+  let command = g:vim_gtags_gtags_binary . ' ' . a:options
+  " let command = 'echo "Creating Gtags for ' . fnamemodify(a:path, ':r.h') . '" && ' . 'pushd ' . a:path . ' && ' . command . ' && popd'
+  " let command = 'pushd ' . a:path . ' && ' . command . ' && popd'
+  " echo command
+  " silent! execute '!' . command
+  echo 'Creating Gtags for ' . fnamemodify(a:path, ':r.h')
+  silent! call system(command . ' &')
+  redraw!
 endfunction
 
 function! gtags#generate_gtags(bang)
@@ -84,7 +84,7 @@ function! gtags#generate_gtags(bang)
 
   let options = s:generate_options()
 
-  silent! execute '!clear'
+  " silent! execute '!clear'
 
   if a:bang
     let l:bundler_cmd = "bundle show --paths"
@@ -105,8 +105,6 @@ function! gtags#generate_gtags(bang)
   endif
 
   call s:execute_gtags_command(getcwd(), options)
-
-  redraw!
 
   silent! exe "cd " . old_cwd
 
